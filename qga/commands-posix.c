@@ -256,16 +256,19 @@ static bool create_directory(const char * path){
 
 	int last_slash_ind = 0;
 	for(int i = 0; path[i] != '\0'; i++){
-		if(path[i] == '\\')last_slash_ind = i;
+		if(path[i] == '/')last_slash_ind = i;
 	}
 
 	char dir_path[last_slash_ind+1];
 	memcpy(dir_path, path, last_slash_ind);
 	dir_path[last_slash_ind] = '\0';
 	
+
+	slog("creating directory at %s", dir_path); 	
 	struct stat st = {0};
         if(stat(dir_path, &st) == -1){
-                int ret = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                int ret = mkdir(dir_path, 0777);
+		//slog("errno of mkdir was %d", errno);
                 return ret == 0;
         }
 	return true;
@@ -370,8 +373,9 @@ safe_open_or_create(const char *path, const char *mode, Error **errp)
         goto end;
     }
 
-    if(!create_directory){
+    if(!create_directory(path)){
 	    error_setg_errno(errp, errno, "failed to create directory");
+	    slog("failed to create directory");
 	    goto end;
     }
 
@@ -2803,10 +2807,13 @@ GuestMemoryBlockInfo *qmp_guest_get_memory_block_info(Error **errp)
     return info;
 }
 
+
 #define MAX_NAME_LEN 128
+/*
 static GuestDiskStatsInfoList *guest_get_diskstats(Error **errp)
 {
 #ifdef CONFIG_LINUX
+
     GuestDiskStatsInfoList *head = NULL, **tail = &head;
     const char *diskstats = "/proc/diskstats";
     FILE *fp;
@@ -2908,6 +2915,8 @@ static GuestDiskStatsInfoList *guest_get_diskstats(Error **errp)
     free(line);
     fclose(fp);
     return head;
+
+	return NULL;
 #else
     g_debug("disk stats reporting available only for Linux");
     return NULL;
@@ -2918,7 +2927,7 @@ GuestDiskStatsInfoList *qmp_guest_get_diskstats(Error **errp)
 {
     return guest_get_diskstats(errp);
 }
-
+*/
 #else /* defined(__linux__) */
 
 void qmp_guest_suspend_disk(Error **errp)
