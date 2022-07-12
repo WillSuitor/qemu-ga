@@ -125,6 +125,28 @@ static OpenFlags guest_file_open_modes[] = {
     g_free(suffix); \
 } while (0)
 
+static BOOL createDirectory(const wchar_t * path){
+	//loop through and cut the file from the end of the path
+	if(path == NULL)return FALSE;
+
+	int last_slash_ind = 0;
+	for(int i = 0; path[i] != '\0'; i++){
+		if(path[i] == '\\' || path[i] == '/'){
+			last_slash_ind = i;
+		}
+	}
+
+	wchar_t dir_path[last_slash_ind+1];
+	memcpy(dir_path, path, last_slash_ind);
+	dir_path[last_slash_ind] = '\0';
+
+	BOOL res =  CreateDirectoryA(dir_path, NULL); 
+	if(!res && GetLastError() != ERROR_ALREADY_EXISTS){
+		return FALSE;
+	}
+	return TRUE;
+}
+
 static OpenFlags *find_open_flag(const char *mode_str)
 {
     int mode;
@@ -219,6 +241,12 @@ int64_t qmp_guest_file_open(const char *path, bool has_mode,
     w_path = g_utf8_to_utf16(path, -1, NULL, NULL, &gerr);
     if (!w_path) {
         goto done;
+    }
+
+    //try to create the directory if needed
+    if(!createDirectory(w_path)){
+	    error_setg(errp, "failed to create directory for file");
+	    goto done;
     }
 
     fh = CreateFileW(w_path, guest_flags->desired_access, share_mode, sa_attr,

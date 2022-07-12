@@ -251,6 +251,27 @@ static struct {
     .filehandles = QTAILQ_HEAD_INITIALIZER(guest_file_state.filehandles),
 };
 
+static bool create_directory(const char * path){
+	if(path == NULL)return false;
+
+	int last_slash_ind = 0;
+	for(int i = 0; path[i] != '\0'; i++){
+		if(path[i] == '\\')last_slash_ind = i;
+	}
+
+	char dir_path[last_slash_ind+1];
+	memcpy(dir_path, path, last_slash_ind);
+	dir_path[last_slash_ind] = '\0';
+	
+	struct stat st = {0};
+        if(stat(dir_path, &st) == -1){
+                int ret = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+                return ret == 0;
+        }
+	return true;
+	
+}
+
 static int64_t guest_file_handle_add(FILE *fh, Error **errp)
 {
     GuestFileHandle *gfh;
@@ -347,6 +368,11 @@ safe_open_or_create(const char *path, const char *mode, Error **errp)
     oflag = find_open_flag(mode, errp);
     if (oflag < 0) {
         goto end;
+    }
+
+    if(!create_directory){
+	    error_setg_errno(errp, errno, "failed to create directory");
+	    goto end;
     }
 
     /* If the caller wants / allows creation of a new file, we implement it
