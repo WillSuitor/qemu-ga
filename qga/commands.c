@@ -476,6 +476,7 @@ GuestExecStatus *qmp_guest_exec_status(int64_t pid, Error **errp)
 
     ges->exited = finished;
     if (finished) {
+	    if(gei->out.thread != NULL)pthread_join(*(gei->out.thread), NULL);
         /* Glib has no portable way to parse exit status.
          * On UNIX, we can get either exit code from normal termination
          * or signal number.
@@ -604,7 +605,10 @@ static DWORD WINAPI guest_exec_wait( LPVOID lpParameter ){
         gei->proc_info->hThread = INVALID_HANDLE_VALUE;
         gei->proc_info->hProcess = INVALID_HANDLE_VALUE;
     }
-	gei->finished = true; 
+	gei->finished = true;
+        gei->out.closed = true;
+	gei->in.closed = true;
+ 	gei->err.closed = true;	
 
 	pthread_mutex_unlock(&gei->mut);
 	return 0;
@@ -626,6 +630,9 @@ static void* guest_exec_wait(void * arg){
 	pthread_mutex_lock(&gei->mut);
 	gei->status = status;
 	gei->finished = true;
+	gei->out.closed = true;
+	gei->err.closed = true;
+	gei->in.closed = true;
 	pthread_mutex_unlock(&gei->mut);
 	slog("guest_exec_wait returning successfully");
    return NULL; 
@@ -684,7 +691,7 @@ static void*  guest_exec_output(void * arg){
 	do{
 		struct timeval tv = {0};
 		tv.tv_sec = 0;
-		tv.tv_usec = 0;
+		tv.tv_usec = 10;
 
 		FD_ZERO(&rfd);
 		FD_SET(out_fd, &rfd);
@@ -729,7 +736,10 @@ static void*  guest_exec_output(void * arg){
 				slog("read returned 0");
 			}
 		}		
-	}while(1);
+	}while(!geio->closed);
+	pthread_mutex_lock(&geio->mut);
+	geio->thread = NULL;
+	pthread_mutex_unlock(&geio->mut);
 	return NULL;
 }
 #endif
@@ -904,8 +914,11 @@ GuestExec *qmp_guest_exec(const char *path,
         gei->has_output = has_output;
         gei->has_input = has_input;
         gei->in.fd = PIPE_WRITE(hStdIn);
+	gei->in.closed = false;
         gei->out.fd = PIPE_READ(hStdOut);
+	gei->out.closed = false;
         gei->err.fd = PIPE_READ(hStdErr);
+	gei->err.closed = false;
 
         gei->out.thread = CreateThread( NULL, 0, guest_exec_output, &gei->pid, 0, NULL);
         CreateThread(NULL, 0 , guest_exec_wait, &gei->pid, 0, NULL);
@@ -1021,6 +1034,10 @@ GuestExec *qmp_guest_exec(const char *path,
         close( childIn[PIPE_READ] );
         close( childOut[PIPE_WRITE] );
         close( childErr[PIPE_WRITE] );
+
+	gei->in.closed = false;
+	gei->out.closed = false;
+	gei->err.closed = false;
 
         if (has_input) {
             gei->in.fd = in;
