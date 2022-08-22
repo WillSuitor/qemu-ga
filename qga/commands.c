@@ -415,8 +415,6 @@ GuestExecSendInput *qmp_guest_exec_send_input(int64_t pid, const char * input, E
 
 	g_autofree uint8_t * dec_in = NULL;
 	size_t ninput = 0;
-	size_t amt_written = 0;
-
 	dec_in  = qbase64_decode(input, -1, &ninput, errp);
         if (!dec_in) {
 		slog("gesi: could not decode input");
@@ -428,10 +426,14 @@ GuestExecSendInput *qmp_guest_exec_send_input(int64_t pid, const char * input, E
 
 	DWORD numWritten;
 	WriteFile(gei->in.fd, dec_in, ninput, &numWritten, NULL);
-        if(numWritten != (DWORD)ninput){
+    if(numWritten != (DWORD)ninput){
 		slog("Only wrote %d bytes to stdin of message of length %d", (int)numWritten, (int)ninput);
 	}
+    else{
+        gesi->success = true;
+    }
 #else
+    size_t amt_written = 0;
 	while(amt_written != ninput){
 		//status = g_io_channel_write_chars(gei->in.channel, (gchar *)(dec_in + amt_written),
 		//		ninput, &bytes_written, &err);
@@ -447,9 +449,8 @@ GuestExecSendInput *qmp_guest_exec_send_input(int64_t pid, const char * input, E
 			amt_written += bytes_written;
 		}
 	}
-
+    gesi->success = (amt_written == ninput);
 #endif
-	gesi->success = (amt_written == ninput);
 	return gesi;
 
 }
@@ -788,21 +789,21 @@ GuestExec *qmp_guest_exec(const char *path,
 
     if ( !CreatePipe(&PIPE_READ(hStdOut), &PIPE_WRITE(hStdOut), &saAttr, 1) ) {
         slog( "Could not create a pipe for child process's stdout");
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "Could not create stdout pipe");
         return NULL;
     }
     SetHandleInformation( PIPE_READ(hStdOut), HANDLE_FLAG_INHERIT, 0 );
 
     if ( !CreatePipe(&PIPE_READ(hStdErr), &PIPE_WRITE(hStdErr), &saAttr, 1)) {
         slog( "Could not create a pipe for child process's stderr");
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "Could not create stderr pipe");
         return NULL;
     }
     SetHandleInformation( PIPE_READ(hStdErr), HANDLE_FLAG_INHERIT, 0 );
 
     if ( !CreatePipe(&PIPE_READ(hStdIn), &PIPE_WRITE(hStdIn), &saAttr, 1) ) {
         slog( "Could not create a pipe for child process's stdin");
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "Could not create Stdin pipe");
         return NULL;
     }
     SetHandleInformation( PIPE_WRITE(hStdIn), HANDLE_FLAG_INHERIT, 0);
@@ -810,6 +811,7 @@ GuestExec *qmp_guest_exec(const char *path,
     //RunCommand
     //BuildCommandString
     char *ret = strdup("");
+
 
     int i;
     for (i = 0 ; argv[i] != NULL ; ++i) {
@@ -830,11 +832,12 @@ GuestExec *qmp_guest_exec(const char *path,
             free(argW);
         }
     }
+
     //end BuildCommandString
     char* commandLine = ret;
     if (!commandLine) {
         slog( "Could not build the command line!" );
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "Could not build command line");
         return NULL;
     }
     //slog("Command line: %s", commandLine);
@@ -845,13 +848,13 @@ GuestExec *qmp_guest_exec(const char *path,
     wchar_t *workingDir = getCurrentExePath();
     if ( !workingDir ) {
         slog( "Could not get current executable path" );
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "Failed to make working directory");
         return NULL;
     }
     wchar_t *dirsep = wcsrchr( workingDir, L'\\' );
     if ( !dirsep ) {
         slog( "Could not get current executable path parent directory." );
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "Faied to get directory");
         return NULL;
     }
     *dirsep = L'\0';
@@ -907,7 +910,7 @@ GuestExec *qmp_guest_exec(const char *path,
     SetLastError(dwErrorCode);
     //End RunCommand
     if ( !rc ) {
-        error_setg(errp, QERR_IO_ERROR);
+        error_setg(errp, "RunCommand failed!");
         return NULL;
     } else {
         ge = g_new0(GuestExec, 1);
