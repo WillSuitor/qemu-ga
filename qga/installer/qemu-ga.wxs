@@ -51,7 +51,7 @@
               Account="LocalSystem"
               ErrorControl="ignore"
               Interactive="no"
-              Arguments="-d --retry-path"
+              Arguments="-d --retry-path \\.\Global\org.qemu.guest_agent.1"
               >
             </ServiceInstall>
             <ServiceControl Id="StartService" Start="install" Stop="both" Remove="uninstall" Name="QEMU-GA" Wait="yes" />
