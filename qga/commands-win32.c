@@ -137,7 +137,9 @@ static BOOL createDirectory(const wchar_t * path){
 	}
 
 	char dir_path[last_slash_ind+1];
-	memcpy(dir_path, path, last_slash_ind);
+	for(int i = 0; i < last_slash_ind; i++){
+        dir_path[i] = path[i];
+    }
 	dir_path[last_slash_ind] = '\0';
 
 	BOOL res =  CreateDirectoryA(dir_path, NULL); 
