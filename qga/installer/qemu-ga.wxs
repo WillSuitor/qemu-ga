@@ -84,7 +84,7 @@
           </Component>
           <?endif?>
           <Component Id="iconv" Guid="{35EE3558-D34B-4F0A-B8BD-430FF0775246}">
-            <File Id="iconv.dll" Name="iconv.dll" Source="$(var.BIN_DIR)/iconv.dll" KeyPath="yes" DiskId="1"/>
+            <File Id="libiconv_2.dll" Name="libiconv-2.dll" Source="$(var.BIN_DIR)/libiconv-2.dll" KeyPath="yes" DiskId="1"/>
           </Component>
           <Component Id="libgcc_arch_lib" Guid="{ADD4D07D-4515-4AB6-AF3E-C904961B4BB0}">
             <File Id="libgcc_arch_lib" Name="$(var.ArchLib)" Source="$(var.BIN_DIR)/$(var.ArchLib)" KeyPath="yes" DiskId="1"/>
