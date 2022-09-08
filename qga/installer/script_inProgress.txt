@@ -1,0 +1,5 @@
+C:\\'Program Files (x86)'\\'WiX Toolset v3.11'\\bin\\candle.exe -fips -dArch=64 -dQEMU_GA_MANUFACTURER=Me -dQEMU_GA_VERSION=1.1.1.1 -dBUILD_DIR=../../build -dBIN_DIR=C:/msys64/mingw64/bin -dQEMU_GA_DISTRO=1 qemu-ga.wxs
+
+I had to change the gspawn-* from dashes to underscores in both .wxs file and bin directory
+
+ C:\\'Program Files (x86)'\\'WiX Toolset v3.11'\\bin\\light.exe -out qemu-ga.msi qemu-ga.wixobj
