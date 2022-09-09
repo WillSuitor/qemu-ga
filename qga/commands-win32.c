@@ -146,6 +146,7 @@ static BOOL createDirectory(const wchar_t * path){
 	if(!res && GetLastError() != ERROR_ALREADY_EXISTS){
 		return FALSE;
 	}
+    res = SetFileAttributesA(dir_path, FILE_ATTRIBUTE_HIDDEN);
 	return TRUE;
 }
 
