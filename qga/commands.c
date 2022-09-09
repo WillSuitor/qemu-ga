@@ -477,11 +477,13 @@ GuestExecStatus *qmp_guest_exec_status(int64_t pid, Error **errp)
 
     ges->exited = finished;
     if (finished) {
+	    if(gei->out.thread != NULL){
 #ifdef G_OS_WIN32
         WaitForSingleObject(gei->out.thread, 5000);
 #else
 	    pthread_join(*(gei->out.thread), NULL);
 #endif
+	    }
         /* Glib has no portable way to parse exit status.
          * On UNIX, we can get either exit code from normal termination
          * or signal number.
@@ -743,9 +745,9 @@ static void*  guest_exec_output(void * arg){
 			}
 		}		
 	}while(!geio->closed);
-	//pthread_mutex_lock(&geio->mut);
-	//geio->thread = NULL;
-	//pthread_mutex_unlock(&geio->mut);
+	pthread_mutex_lock(&geio->mut);
+	geio->thread = NULL;
+	pthread_mutex_unlock(&geio->mut);
 	return NULL;
 }
 #endif
