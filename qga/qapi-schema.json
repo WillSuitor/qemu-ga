@@ -236,7 +236,7 @@
 # Since: 0.15.0
 ##
 { 'command': 'guest-file-open',
-  'data':    { 'path': 'str', '*mode': 'str' },
+        'data':    { 'path': 'str', '*mode': 'str', '*isexe':'bool' },
   'returns': 'int' }
 
 ##

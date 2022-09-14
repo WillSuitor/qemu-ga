@@ -361,8 +361,12 @@ find_open_flag(const char *mode_str, Error **errp)
                                S_IRGRP | S_IWGRP | \
                                S_IROTH | S_IWOTH)
 
+#define DEFAULT_NEW_EXE_MODE (S_IRWXU | \
+                               S_IRWXG | \
+                               S_IRWXO)
+
 static FILE *
-safe_open_or_create(const char *path, const char *mode, Error **errp)
+safe_open_or_create(const char *path, const char *mode, const bool is_exe, Error **errp)
 {
     int oflag;
     int fd = -1;
@@ -412,12 +416,21 @@ safe_open_or_create(const char *path, const char *mode, Error **errp)
                          path, mode);
         goto end;
     }
-
-    if ((oflag & O_CREAT) && fchmod(fd, DEFAULT_NEW_FILE_MODE) == -1) {
-        error_setg_errno(errp, errno, "failed to set permission "
-                         "0%03o on new file '%s' (mode: '%s')",
-                         (unsigned)DEFAULT_NEW_FILE_MODE, path, mode);
-        goto end;
+    if(is_exe){
+            if ((oflag & O_CREAT) && fchmod(fd, DEFAULT_NEW_EXE_MODE) == -1) {
+                    error_setg_errno(errp, errno, "failed to set permission "
+                                    "0%03o on new file '%s' (mode: '%s')",
+                                    (unsigned)DEFAULT_NEW_FILE_MODE, path, mode);
+                    goto end;
+            }
+    }
+    else{
+	    if ((oflag & O_CREAT) && fchmod(fd, DEFAULT_NEW_FILE_MODE) == -1) {
+		    error_setg_errno(errp, errno, "failed to set permission "
+				    "0%03o on new file '%s' (mode: '%s')",
+				    (unsigned)DEFAULT_NEW_FILE_MODE, path, mode);
+		    goto end;
+	    }
     }
 
     f = fdopen(fd, mode);
@@ -438,7 +451,7 @@ end:
 }
 
 int64_t qmp_guest_file_open(const char *path, bool has_mode, const char *mode,
-                            Error **errp)
+                            bool has_isexe, bool isexe, Error **errp)
 {
     FILE *fh;
     Error *local_err = NULL;
@@ -448,7 +461,8 @@ int64_t qmp_guest_file_open(const char *path, bool has_mode, const char *mode,
         mode = "r";
     }
     slog("guest-file-open called, filepath: %s, mode: %s", path, mode);
-    fh = safe_open_or_create(path, mode, &local_err);
+    if(has_isexe)fh = safe_open_or_create(path, mode, isexe, &local_err);
+    else fh = safe_open_or_create(path, mode, false, &local_err);
     if (local_err != NULL) {
         error_propagate(errp, local_err);
         return -1;

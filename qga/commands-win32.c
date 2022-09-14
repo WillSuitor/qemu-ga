@@ -218,8 +218,8 @@ static void handle_set_nonblocking(HANDLE fh)
     SetNamedPipeHandleState(fh, &pipe_state, NULL, NULL);
 }
 
-int64_t qmp_guest_file_open(const char *path, bool has_mode,
-                            const char *mode, Error **errp)
+int64_t qmp_guest_file_open(const char *path, bool has_mode, const char *mode, 
+				const bool has_isexe, const bool isexe, Error **errp)
 {
     int64_t fd = -1;
     HANDLE fh;
