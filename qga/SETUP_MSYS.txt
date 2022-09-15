@@ -1,0 +1,19 @@
+1)Fresh MSYS2 install
+
+2)pacman -Syu (MSYS2 terminal)
+
+3)pacman -Su (MSYS2 terminal)
+
+4)pacman -S base-devel mingw-w64-x86_64-toolchain git python ninja (MSYS2 terminal)
+
+5)pacman -S mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman python-setuptools (MSYS2 terminal)
+
+6)pacman -S mingw-w64-x86_64-gtk3 mingw-w64-x86_64-SDL2 (MSYS2 terminal)
+
+7)clone and enter repo
+
+8)mkdir build && cd build (mingw64 terminal)
+
+9)../configure --enable-gtk --enable-sdl (mingw64 terminal)
+
+10)ninja (mingw64 terminal)
