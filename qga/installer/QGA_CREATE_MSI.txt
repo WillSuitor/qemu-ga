@@ -1,0 +1,7 @@
+Commands:
+C:\\'Program Files (x86)'\\'WiX Toolset v3.11'\\bin\\candle.exe -fips -dArch=64 -dQEMU_GA_MANUFACTURER=ATC-NY -dQEMU_GA_VERSION=1.1.1.1 -dBUILD_DIR=../../build -dBIN_DIR=C:/msys64/mingw64/bin -dQEMU_GA_DISTRO=1 qemu-ga.wxs
+
+C:\\'Program Files (x86)'\\'WiX Toolset v3.11'\\bin\\light.exe -out qemu-ga.msi qemu-ga.wixobj
+
+You need to install the Wix Toolset to get this working. You might need to change the path the the WixToolset in the script.
+Don't worry about the reported errors, they don't affect the actual install.
