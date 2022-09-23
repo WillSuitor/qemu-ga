@@ -3002,6 +3002,7 @@ GuestMemoryBlockInfo *qmp_guest_get_memory_block_info(Error **errp)
 #endif
 
 #ifdef HAVE_GETIFADDRS
+/*
 static GuestNetworkInterface *
 guest_find_interface(GuestNetworkInterfaceList *head,
 					 const char *name)
@@ -3014,7 +3015,8 @@ guest_find_interface(GuestNetworkInterfaceList *head,
 
 	return NULL;
 }
-
+*/
+/*
 static int guest_get_network_stats(const char *name,
 					   GuestNetworkInterfaceStat *stats)
 {
@@ -3076,12 +3078,12 @@ static int guest_get_network_stats(const char *name,
 	fclose(fp);
 	g_free(line);
 	g_debug("/proc/net/dev: Interface '%s' not found", name);
-#else /* !CONFIG_LINUX */
+#else // !CONFIG_LINUX 
 	g_debug("Network stats reporting available only for Linux");
-#endif /* !CONFIG_LINUX */
+#endif // !CONFIG_LINUX 
 	return -1;
 }
-
+*/
 /*
  * Build information about guest interfaces
  */
