@@ -943,7 +943,7 @@ static void handle_pending_signal(CPUArchState *env, int sig,
 
         blocked_set = ts->in_sigsuspend ?
             &ts->sigsuspend_mask : &ts->signal_mask;
-        sigorset(&ts->signal_mask, blocked_set, &set);
+        //sigorset(&ts->signal_mask, blocked_set, &set);
         ts->in_sigsuspend = false;
         sigprocmask(SIG_SETMASK, &ts->signal_mask, NULL);
 
