@@ -3087,6 +3087,9 @@ static int guest_get_network_stats(const char *name,
  */
 GuestNetworkInterfaceList *qmp_guest_network_get_interfaces(Error **errp)
 {
+	error_setg(errp, QERR_UNSUPPORTED);
+	return NULL;
+/*
 	GuestNetworkInterfaceList *head = NULL, **tail = &head;
 	struct ifaddrs *ifap, *ifa;
 
@@ -3119,7 +3122,7 @@ GuestNetworkInterfaceList *qmp_guest_network_get_interfaces(Error **errp)
 		}
 
 		if (!info->has_hardware_address) {
-			/* we haven't obtained HW address yet */
+			// we haven't obtained HW address yet
 			sock = socket(PF_INET, SOCK_STREAM, 0);
 			if (sock == -1) {
 				error_setg_errno(errp, errno, "failed to create socket");
@@ -3129,13 +3132,13 @@ GuestNetworkInterfaceList *qmp_guest_network_get_interfaces(Error **errp)
 			memset(&ifr, 0, sizeof(ifr));
 			pstrcpy(ifr.ifr_name, IF_NAMESIZE, info->name);
 			if (ioctl(sock, SIOCGIFHWADDR, &ifr) == -1) {
-				/*
+				
 				 * We can't get the hw addr of this interface, but that's not a
 				 * fatal error. Don't set info->hardware_address, but keep
 				 * going.
-				 */
+				 
 				if (errno == EADDRNOTAVAIL) {
-					/* The interface doesn't have a hw addr (e.g. loopback). */
+					// The interface doesn't have a hw addr (e.g. loopback).
 					g_debug("failed to get MAC address of %s: %s",
 							ifa->ifa_name, strerror(errno));
 				} else{
@@ -3162,7 +3165,7 @@ GuestNetworkInterfaceList *qmp_guest_network_get_interfaces(Error **errp)
 
 		if (ifa->ifa_addr &&
 			ifa->ifa_addr->sa_family == AF_INET) {
-			/* interface with IPv4 address */
+			// interface with IPv4 address
 			p = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
 			if (!inet_ntop(AF_INET, p, addr4, sizeof(addr4))) {
 				error_setg_errno(errp, errno, "inet_ntop failed");
@@ -3174,14 +3177,14 @@ GuestNetworkInterfaceList *qmp_guest_network_get_interfaces(Error **errp)
 			address_item->ip_address_type = GUEST_IP_ADDRESS_TYPE_IPV4;
 
 			if (ifa->ifa_netmask) {
-				/* Count the number of set bits in netmask.
-				 * This is safe as '1' and '0' cannot be shuffled in netmask. */
+				// Count the number of set bits in netmask.
+				//This is safe as '1' and '0' cannot be shuffled in netmask.
 				p = &((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr;
 				address_item->prefix = ctpop32(((uint32_t *) p)[0]);
 			}
 		} else if (ifa->ifa_addr &&
 				   ifa->ifa_addr->sa_family == AF_INET6) {
-			/* interface with IPv6 address */
+			// interface with IPv6 address 
 			p = &((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
 			if (!inet_ntop(AF_INET6, p, addr6, sizeof(addr6))) {
 				error_setg_errno(errp, errno, "inet_ntop failed");
@@ -3193,8 +3196,8 @@ GuestNetworkInterfaceList *qmp_guest_network_get_interfaces(Error **errp)
 			address_item->ip_address_type = GUEST_IP_ADDRESS_TYPE_IPV6;
 
 			if (ifa->ifa_netmask) {
-				/* Count the number of set bits in netmask.
-				 * This is safe as '1' and '0' cannot be shuffled in netmask. */
+				// Count the number of set bits in netmask.
+				// This is safe as '1' and '0' cannot be shuffled in netmask.
 				p = &((struct sockaddr_in6 *)ifa->ifa_netmask)->sin6_addr;
 				address_item->prefix =
 					ctpop32(((uint32_t *) p)[0]) +
@@ -3235,6 +3238,7 @@ error:
 	freeifaddrs(ifap);
 	qapi_free_GuestNetworkInterfaceList(head);
 	return NULL;
+*/
 }
 
 #else
@@ -3291,7 +3295,8 @@ GuestDiskInfoList *qmp_guest_get_disks(Error **errp)
 	return NULL;
 }
 
-GuestDiskStatsInfoList *qmp_guest_get_diskstats(Error **errp)
+//GuestDiskStatsInfoList *qmp_guest_get_diskstats(Error **errp)
+GuestDiskInfoList *qmp_guest_get_diskstats(Error **errp)
 {
 	error_setg(errp, QERR_UNSUPPORTED);
 	return NULL;
