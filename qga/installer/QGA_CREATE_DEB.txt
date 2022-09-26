@@ -1,0 +1,13 @@
+ON UBUNTU MACHINE
+
+1)mkdir tmp
+
+2)apt-get download qemu-guest-agent
+
+3)dpkg-deb -R {$qemu_guest_agent_pkg}.deb tmp && cd tmp
+
+4)change all "org.qemu.guest_agent.0" in all files to "org.qemu.guest_agent.1"
+
+5)swap out usr/sbin/qemu-ga for the updated version
+
+6)dpkg-deb -b tmp qemu-guest-agent.deb
