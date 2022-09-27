@@ -1,0 +1,13 @@
+1) yum instal centos-release-scl
+
+2)yum install devtoolset-8-gcc devtoolset-8-gcc-c++
+
+3)scl enable devtoolset-8 -- bash
+
+4)yum install python36
+
+5)yum install epel-release
+
+6)yum install ninja-build
+
+7)yum install glib*
