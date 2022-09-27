@@ -1051,8 +1051,6 @@ GuestExec *qmp_guest_exec(const char *path,
 		close( childOut[PIPE_WRITE] );
 		close( childErr[PIPE_WRITE] );
 		return NULL;
-		}
-
 	} else {
 		/* still in the original process */
 
