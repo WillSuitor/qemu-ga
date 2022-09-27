@@ -11,3 +11,10 @@
 6)yum install ninja-build
 
 7)yum install glib*
+
+8)yum install bzip2
+
+9)yum install pixman-devel
+
+10)yum install zlib-devel
+
