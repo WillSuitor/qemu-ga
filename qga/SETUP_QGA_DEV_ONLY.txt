@@ -1,0 +1,21 @@
+1) Set up the VM with virsh as default.
+
+2)Install qemu-guest-agent on the guest VM.
+
+3)Modify /usr/lib/systemd/system/qemu-guest-agent.service as follows:
+	-Remove the black list value from exec start
+	-Change all the zeroes in all "org.qemu.guest_agent.0*" to a unique integer
+
+4)Stop the guest VM (sudo virsh shutdown $VM_Name)
+
+5)Edit qemu guest agent entry in the VM's config file (sudo virsh edit $VM_Name) as follows:
+	<channel type='unix'>
+		<source mode='bind' path='/var/lib/libvirt/qemu/$VM_Name.agent'/>
+		<target type='virtio' name='org.qemu.guest_agent.$UniqueInt'/>
+	<address type='virtio-serial' controller='0' bus='0' port='1'/></channel>
+
+6)Restart the guest VM (sudo virsh start $VM_Name)
+
+7)Ensure that the guest agent is active in the guest VM.
+
+Addendum: I had to manually create the directory /var/local/run for it to actually start properly. I also needed to disable SELinux to allow it to run. I also need to manually restart it anytime the VM is shutdown.
