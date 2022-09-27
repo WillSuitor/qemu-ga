@@ -1008,37 +1008,50 @@ GuestExec *qmp_guest_exec(const char *path,
 		}
 
 		//build correct arg structure for stdbuf
+		//if stdbuf is there, we're using it. Otherwise, we're directly execing it,
+		//and the user will have to deal with buffering if present
 		char stdbuf[] = "/bin/stdbuf";
-		int init_argc = 0;
-		while(argv[init_argc] != NULL) init_argc++; 
-		//adding 1 to get to the size of the argv array
-		//then 1 for stdbuf and 1 for the stdbuf option
-		init_argc+=3;
+		if(access(stdbuf, F_OK) == 0){
+			int init_argc = 0;
+			while(argv[init_argc] != NULL) init_argc++; 
+			//adding 1 to get to the size of the argv array
+			//then 1 for stdbuf and 1 for the stdbuf option
+			init_argc+=3;
 
-		char stdbuf_opt[] = "-o0";
-		//TODO this causes a memory leak - probably need to attach
-		//it to a struct and free later
-		char * args[init_argc];
-		args[0] = stdbuf;
-		args[1] = stdbuf_opt;
-		for(int i = 2; i < init_argc; i++){
-			args[i] = argv[i-2];
-		}
-		// execute the command; this only returns on failure
-		if(has_env){
-			slog("executing w/environment vars");
-			execve(args[0], args, envp);
-		}
+			char stdbuf_opt[] = "-o0";
+			char * args[init_argc];
+			args[0] = stdbuf;
+			args[1] = stdbuf_opt;
+			for(int i = 2; i < init_argc; i++){
+				args[i] = argv[i-2];
+			}
+			// execute the command; this only returns on failure
+			if(has_env){
+				slog("executing w/environment vars");
+				execve(args[0], args, envp);
+			}
+			else{
+				slog("executing w/o environment vars");
+				execv(args[0], args);
+			}
 		else{
-			slog("executing w/o environment vars");
-			execv(args[0], args);
+			if(has_env){
+				slog("executing w/env vars");
+				execve(argv[0], argv, envp);
+			}
+			else{
+				slog("executing w/o env vars");
+				execv(argv[0], argv);
+			}
 		}
-
+		
 		slog("guest-exec failed to execute command");
 		close( childIn[PIPE_READ] );
 		close( childOut[PIPE_WRITE] );
 		close( childErr[PIPE_WRITE] );
 		return NULL;
+		}
+
 	} else {
 		/* still in the original process */
 
