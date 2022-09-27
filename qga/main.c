@@ -45,9 +45,15 @@
 #endif
 
 #ifndef _WIN32
+#ifdef FREEBSD
+#define QGA_VIRTIO_PATH_DEFAULT "/dev/vtcon/org.qemu.guest_agent.1"
+#define QGA_STATE_RELATIVE_DIR  "run"
+#define QGA_SERIAL_PATH_DEFAULT "/dev/vtcon/org.qemu.guest_agent.1"
+#else
 #define QGA_VIRTIO_PATH_DEFAULT "/dev/virtio-ports/org.qemu.guest_agent.1"
 #define QGA_STATE_RELATIVE_DIR  "run"
 #define QGA_SERIAL_PATH_DEFAULT "/dev/ttyS0"
+#endif
 #else
 #define QGA_VIRTIO_PATH_DEFAULT "\\\\.\\Global\\org.qemu.guest_agent.1"
 #define QGA_STATE_RELATIVE_DIR  "qemu-ga"
