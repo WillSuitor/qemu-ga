@@ -1034,6 +1034,7 @@ GuestExec *qmp_guest_exec(const char *path,
 				slog("executing w/o environment vars");
 				execv(args[0], args);
 			}
+		}
 		else{
 			if(has_env){
 				slog("executing w/env vars");
@@ -1044,7 +1045,7 @@ GuestExec *qmp_guest_exec(const char *path,
 				execv(argv[0], argv);
 			}
 		}
-		
+
 		slog("guest-exec failed to execute command");
 		close( childIn[PIPE_READ] );
 		close( childOut[PIPE_WRITE] );
