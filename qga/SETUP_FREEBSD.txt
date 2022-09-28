@@ -1,3 +1,19 @@
 In target FreeBSD VM
 
-1)add virtio_console_load="YES" to /boot/loader.conf
+1)add virtio_console_load="YES" to /boot/loader.conf and restart
+
+In builder VM
+
+1)You're gonna have to install some ports: 
+	-gcc8-devel (configure will report gcc 7 works, it doesn't)
+	-python36
+	-git
+  These three should install the other ones that are needed but if the next step reports missing dependencies,
+  you'll have to install those from ports as well. Also, keep in mind that this takes a while. 
+
+2)From the qemu-ga base dir, run "mkdir build && cp qga/configure_freeBSD build/configure_freeBSD"
+
+3)"cd build && ./configure_freeBSD"
+
+4)gmake
+
