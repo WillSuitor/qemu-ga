@@ -1,6 +1,14 @@
 In target FreeBSD VM
 
-1)add virtio_console_load="YES" to /boot/loader.conf and restart
+1)transfer the tar file to the target VM and unzip.
+
+2)run the install_qga script as root.
+
+3)reboot the VM and verify the service "qemu_guest_agent" is running.
+
+4)If it's not, run the /usr/local/bin/qemu-ga command manually and it should
+tell you what runtime dependency is failing (most likey glib). If you're using
+FreeBSD 11 or greater, you will be able to install all the necessary runtime dependencies from ports.
 
 In builder VM
 
