@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# PROVIDE: qemu_guest_agent
+# REQUIRE: DAEMON
+# KEYWORD: nojail
+#
+
+. /etc/rc.subr
+
+name=qemu_guest_agent
+rcvar=qemu_guest_agent_enable
+
+load_rc_config $name
+qemu_guest_agent_flags=${qemu_guest_agent_flags-"-d"}
+qemu_guest_agent_enable=${qemu_guest_agent_enable:-"NO"}
+
+qemu_guest_agent_bin=/usr/local/bin/qemu-ga
+command=${qemu_guest_agent_bin}
+pidfile="/var/run/qemu-ga.pid"
+
+run_rc_command "$1"
