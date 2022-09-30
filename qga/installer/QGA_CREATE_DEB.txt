@@ -8,6 +8,8 @@ ON UBUNTU MACHINE
 
 4)change all "org.qemu.guest_agent.0" in all files to "org.qemu.guest_agent.1"
 
+5)add the following line to the start of tmp/DEBIAN/postinst "mkdir -p /var/local/run/"
+
 5)swap out usr/sbin/qemu-ga for the updated version
 
 6)dpkg-deb -b tmp qemu-guest-agent.deb
