@@ -1,0 +1,9 @@
+#!/bin/sh
+
+/usr/bin/install -m 0755 qemu-ga /usr/local/bin/qemu-ga
+/usr/bin/install -m 0555 qemu-guest-agent /etc/rc.d/qemu-guest-agent
+
+echo 'virtio_console_load="YES"' >> /boot/loader.conf
+echo 'qemu_guest_agent_enable="YES"' >> /etc/rc.conf
+
+mkdir -p /var/local/run

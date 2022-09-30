@@ -1,0 +1,8 @@
+To install, run the install_qga script as root from the freeBSD directory then reboot.
+
+!!!MAKE SURE TO CHECK THE STATUS OF THE SERVICE!!!
+You might be missing dependencies (most likely glib 2.56). Running the qemu-ga executable (located at /usr/local/bin/qemu-ga) manually should tell which one. If you're using freeBSD 11 or greater, ports are available to meet all the necessary runtime dependencies.
+
+If the necessary ports aren't already available on your system and you're using an older version of FreeBSD, I'd recommend looking here for ports:
+
+https://ftp-archive.freebsd.org/pub/FreeBSD-Archive/old-releases/
