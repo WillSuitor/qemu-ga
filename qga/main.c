@@ -1477,7 +1477,11 @@ int main(int argc, char **argv)
     }
 
     if (config->method == NULL) {
+#ifdef FREEBSD
+	config->method = g_strdup("isa-serial");
+#else
         config->method = g_strdup("virtio-serial");
+#endif
     }
 
     socket_activation = check_socket_activation();
