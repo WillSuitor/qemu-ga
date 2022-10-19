@@ -22,6 +22,10 @@
 #include <pthread.h>
 #include <errno.h>
 
+#ifndef G_OS_WIN32
+#include <libgen.h>
+#endif
+
 /* Maximum captured guest-exec out_data/err_data - 16MB */
 #define GUEST_EXEC_MAX_OUTPUT (16 * 1024 * 1024)
 /* Allocation and I/O buffer for reading guest-exec out_data/err_data - 4KB */
@@ -1006,6 +1010,17 @@ GuestExec *qmp_guest_exec(const char *path,
 		if ( fcntl(childErr[PIPE_WRITE], F_SETFD, FD_CLOEXEC) == -1 ) {
 			slog( "Failed to set close-on-exec for write side of childErr pipe" );
 		}
+		
+		//we need to change the working directory to that of the executable
+		char * cp_path = strdup(argv[0]);
+		char * dir = dirname(cp_path);
+		if(chdir(dir) != 0){
+			slog("Failed to change to working directory");
+			free(cp_path);
+			return NULL;
+		}
+
+		free(cp_path);
 
 		//build correct arg structure for stdbuf
 		//if stdbuf is there, we're using it. Otherwise, we're directly execing it,
