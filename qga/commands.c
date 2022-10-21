@@ -145,15 +145,15 @@ static int64_t gpid_to_int64(GPid pid)
 */
 #ifdef G_OS_WIN32
 //These are a list of necessary utils copied from ProductLibC
-
+/*
 static wchar_t* getCurrentExePath( void ) {
 	DWORD sz = 256;
 	wchar_t *ourPath = (wchar_t*) malloc( sz * sizeof(wchar_t) );
 	if ( ourPath == NULL )
 		return NULL;
 
-	/* GetModuleFileName can return more than MAX_PATH, so we
-	 must be careful to allocate as much as it wants */
+	 //GetModuleFileName can return more than MAX_PATH, so we
+	 //must be careful to allocate as much as it wants
 
 	SetLastError( NO_ERROR );
 	GetModuleFileNameW( GetModuleHandle(NULL), ourPath, sz );
@@ -175,7 +175,7 @@ static wchar_t* getCurrentExePath( void ) {
 		return NULL;
 	}
 }
-
+*/
 static wchar_t *ConvertUTF8ToWchar( const char *str, size_t *newStrChars ) {
 
 	wchar_t *newstr;
@@ -856,7 +856,7 @@ GuestExec *qmp_guest_exec(const char *path,
 
 	//end BuildCommandString
 	char* commandLine = ret;
-	if (!commandLine) {
+	if (!commandLine || argv[0] == NULL) {
 		slog( "Could not build the command line!" );
 		error_setg(errp, "Could not build command line");
 		return NULL;
@@ -866,7 +866,7 @@ GuestExec *qmp_guest_exec(const char *path,
 	free(commandLine);
 
 	// make the working directory be that containing our executable
-	wchar_t *workingDir = getCurrentExePath();
+	wchar_t *workingDir = ConvertUTF8ToWchar(argv[0], NULL);
 	if ( !workingDir ) {
 		slog( "Could not get current executable path" );
 		error_setg(errp, "Failed to make working directory");
@@ -874,9 +874,12 @@ GuestExec *qmp_guest_exec(const char *path,
 	}
 	wchar_t *dirsep = wcsrchr( workingDir, L'\\' );
 	if ( !dirsep ) {
-		slog( "Could not get current executable path parent directory." );
-		error_setg(errp, "Faied to get directory");
-		return NULL;
+		dirsep = wcsrchr(workingDir, L'/');
+		if(!dirsep){
+			slog( "Could not get current executable path parent directory." );
+			error_setg(errp, "Faied to get directory");
+			return NULL;
+		}
 	}
 	*dirsep = L'\0';
 
