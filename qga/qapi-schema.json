@@ -1246,6 +1246,33 @@
                '*using-input': 'bool', '*capture-output': 'bool' },
   'returns': 'GuestExec' }
 
+##
+# @GuestFileStat:
+#
+# @exists whether the file at path exists
+# @fileType the type of the file
+# @fileSize the size of the file
+# @permissions a standard permissions string for the file
+#
+##
+{ 'struct': 'GuestFileStat',
+  'data': {'exists':'bool', 'filetype': 'str', 
+           'filesize': 'int', 'permissions': 'str'}}
+
+##
+# @guest-file-stat:
+# 
+# Get information for a given file on the guest
+#
+# @path: path to stat
+#
+#
+# Returns: file info on success.
+#
+##
+{ 'command': 'guest-file-stat',
+  'data':    { 'path': 'str'},
+  'returns': 'GuestFileStat' }
 
 ##
 # @GuestHostName:

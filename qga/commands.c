@@ -318,12 +318,13 @@ static char *ConvertWcharToUTF8( const wchar_t *str, size_t *newStrBytes ) {
 		*newStrBytes = newstrSize;
 	return newstr;
 }
-
+#endif
 static char *checkedAsprintf( const char *format, ... ) {
 
 	va_list args;
 	char *ret = NULL;
 
+#ifdef G_OS_WIN32
 	va_list args2;
 	int len;
 
@@ -346,9 +347,24 @@ static char *checkedAsprintf( const char *format, ... ) {
 		fprintf( stderr, "failed to determine length when creating a string\n" );
 		exit(71); //EX_OSERR from sysexits(3)
 	}
+#else
+
+	int rc;
+
+	va_start( args, format );
+
+	rc = vasprintf( &ret, format, args );
+	va_end(args);
+
+	if ( rc < 0 ) {
+		fprintf( stderr, "failed to allocate memory when creating a string\n" );
+		exit(71); //EX_OSERR from sysexits(3)
+	}
+#endif
+
 	return ret;
 }
-#endif
+
 
 static GuestExecInfo *guest_exec_info_add(int64_t pid)
 {
@@ -376,6 +392,109 @@ static GuestExecInfo *guest_exec_info_find(int64_t pid_numeric)
 	}
 
 	return NULL;
+}
+
+GuestFileStat *qmp_guest_file_stat(const char * path, Error **errp)
+{
+	GuestFileStat *gs;
+	gs = g_new0(GuestFileStat, 1);
+
+	if(path == NULL){
+		slog("gs: path was null");
+		error_setg(errp, QERR_INVALID_PARAMETER, "path");
+		return gs;
+	}
+
+	slog("guest-stat called, path: %s", path);
+#ifdef G_OS_WIN32
+	DWORD dwAttrib = GetFileAttributes(path);
+	if(dwAttrib != INVALID_FILE_ATTRIBUTES){
+		char * fileType = NULL;
+		char * permissions = NULL;
+
+		if(dwAttrib & FILE_ATTRIBUTE_DIRECTORY){
+			fileType = g_strdup("dir");
+			gs->filesize = 0;
+		}
+		else{
+			if(dwAttrib & FILE_ATTRIBUTE_NORMAL){
+				fileType = g_strdup("regular");
+			}
+			else{
+				fileType = g_strdup("other");
+			}
+			wchar_t * w_path = ConvertUTF8ToWchar(path, NULL);
+			HANDLE fh = CreateFileW(w_path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+						OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+						NULL);
+			if(fh == INVALID_HANDLE_VALUE){
+				slog("error opening file for reading");
+				error_setg(errp, QERR_QGA_COMMAND_FAILED, "CreateFile error for checking file size");
+				return gs;
+			}
+
+			LARGE_INTEGER size;
+			if( !GetFileSizeEx(fh, &size)){
+				CloseHandle(fh);
+				slog("error opening file for reading");
+				error_setg(errp, QERR_QGA_COMMAND_FAILED, "CreateFile error for checking file size");
+				return gs;
+			}
+
+			CloseHandle(fh);
+			gs->filesize = (int) size.QuadPart;
+		}
+
+		//this is a nightmare to do on windows
+		permissions = g_strdup("");
+		gs->exists = true;
+		gs->filetype = g_steal_pointer(&fileType);
+		gs->permissions = g_steal_pointer(&permissions);
+	}
+#else
+	if(access(path, F_OK) == 0){
+		struct stat sb;
+		if(stat(path, &sb) == -1){
+			slog("error encountered calling stat after verifying file exists");
+			error_setg(errp, QERR_QGA_COMMAND_FAILED, "stat error");
+			return gs;
+		}
+
+		char * fileType = NULL;
+		char * permissions = NULL;
+
+		switch(sb.st_mode & S_IFMT){
+			case S_IFREG:
+				fileType = g_strdup("regular");
+				break;
+			case S_IFDIR:
+				fileType = g_strdup("dir");
+				break;
+			default:
+				fileType = g_strdup("other");
+				break;
+		}
+
+		permissions = checkedAsprintf("%lo", sb.st_mode);
+		char * ret_perms = g_strdup(permissions);
+
+		gs->exists = true;
+		gs->filetype = g_steal_pointer(&fileType);
+		gs->filesize = sb.st_size;
+		gs->permissions = g_steal_pointer(&ret_perms);
+		free(permissions);
+	}
+#endif
+	else{
+		char * fileType = g_strdup("");
+		char * permissions = g_strdup("");
+
+		gs->exists = false;
+		gs->filetype = g_steal_pointer(&fileType);
+		gs->filesize = 0;
+		gs->permissions = g_steal_pointer(&permissions);
+	}
+	return gs;
 }
 
 //Sends base64-encoded input to the process specified pid stdin
